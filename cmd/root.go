@@ -9,6 +9,7 @@ import (
 	"os"
 	"sync"
 
+	"github.com/shin5ok/image-processing-cloud-run-jobs/myimaging"
 	"github.com/spf13/cobra"
 )
 
@@ -33,7 +34,9 @@ You can run it on local environment, and also on Cloud Run jobs
 			wg.Add(1)
 			go func(file string, n int) {
 				defer wg.Done()
-				fmt.Printf("%d: %s\n", n+1, file)
+				s := myimaging.Image{Filename: file}
+				newFilename, _ := s.MakeSmall(640)
+				fmt.Println("new filename is " + newFilename)
 			}(file, n)
 		}
 		wg.Wait()
