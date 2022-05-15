@@ -33,7 +33,7 @@ You can run it on local environment, and also on Cloud Run jobs
 			wg.Add(1)
 			go func(file string, n int) {
 				defer wg.Done()
-				fmt.Printf("%d: %s\n", n, file)
+				fmt.Printf("%d: %s\n", n+1, file)
 			}(file, n)
 		}
 		wg.Wait()
