@@ -7,6 +7,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"sync"
 
 	"github.com/spf13/cobra"
 )
@@ -20,16 +21,22 @@ You can run it on local environment, and also on Cloud Run jobs
 	`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
+	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		name, err := cmd.Flags().GetString("name")
+		file := args[0]
+		num, err := cmd.Flags().GetInt("number")
 		if err != nil {
 			fmt.Println(err)
 		}
-		if name == "" {
-			fmt.Println("Hi, Cobra!!")
-		} else {
-			fmt.Printf("Hey, %s!!\n", name)
+		var wg sync.WaitGroup
+		for n := 0; n < num; n++ {
+			wg.Add(1)
+			go func(file string, n int) {
+				defer wg.Done()
+				fmt.Printf("%d: %s\n", n, file)
+			}(file, n)
 		}
+		wg.Wait()
 	},
 }
 
@@ -51,5 +58,5 @@ func init() {
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	rootCmd.Flags().String("name", "", "Specify your name")
+	rootCmd.Flags().Int("number", 1, "Specify concurency")
 }
