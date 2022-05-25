@@ -27,6 +27,7 @@ You can run it on local environment, and also on Cloud Run jobs
 		file := args[0]
 		num, err := cmd.Flags().GetInt("number")
 		debug, err := cmd.Flags().GetBool("debug")
+		width, err := cmd.Flags().GetInt("width")
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -39,7 +40,7 @@ You can run it on local environment, and also on Cloud Run jobs
 				if debug {
 					fmt.Println("Debug:", s)
 				}
-				newFilename, _ := s.MakeSmall(240)
+				newFilename, _ := s.MakeSmall(width)
 				fmt.Println("new filename is " + newFilename)
 			}(file, n)
 		}
@@ -67,4 +68,5 @@ func init() {
 	// when this action is called directly.
 	rootCmd.Flags().Int("number", 1, "Specify concurency")
 	rootCmd.Flags().Bool("debug", false, "debug mode")
+	rootCmd.Flags().Int("width", 240, "size of width")
 }
