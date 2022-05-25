@@ -63,10 +63,15 @@ func init() {
 	// will be global for your application.
 
 	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.image-processing-cloud-run-jobs.yaml)")
+	cobra.OnInitialize(initConfig)
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	rootCmd.Flags().Int("number", 1, "Specify concurency")
 	rootCmd.Flags().Bool("debug", false, "debug mode")
 	rootCmd.Flags().Int("width", 240, "size of width")
+}
+
+func initConfig() {
+	fmt.Println("calling init")
 }
