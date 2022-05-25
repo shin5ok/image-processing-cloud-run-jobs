@@ -2,6 +2,7 @@ package myimaging
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/disintegration/imaging"
 )
@@ -11,7 +12,11 @@ type Image struct {
 }
 
 func (i Image) MakeSmall(width int) (string, error) {
-	newfilename := fmt.Sprintf("%s_%s", "new", i.Filename)
+
+	dirname := filepath.Dir(i.Filename)
+	basename := filepath.Base(i.Filename)
+	newfilename := fmt.Sprintf("%s/%s_%s", dirname, "new", basename)
+
 	srcImage, err := imaging.Open(i.Filename, imaging.AutoOrientation(true))
 	if err != nil {
 		fmt.Println(err.Error())

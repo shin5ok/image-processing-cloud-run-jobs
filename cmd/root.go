@@ -26,6 +26,7 @@ You can run it on local environment, and also on Cloud Run jobs
 	Run: func(cmd *cobra.Command, args []string) {
 		file := args[0]
 		num, err := cmd.Flags().GetInt("number")
+		debug, err := cmd.Flags().GetBool("debug")
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -35,7 +36,10 @@ You can run it on local environment, and also on Cloud Run jobs
 			go func(file string, n int) {
 				defer wg.Done()
 				s := myimaging.Image{Filename: file}
-				newFilename, _ := s.MakeSmall(640)
+				if debug {
+					fmt.Println("Debug:", s)
+				}
+				newFilename, _ := s.MakeSmall(240)
 				fmt.Println("new filename is " + newFilename)
 			}(file, n)
 		}
@@ -62,4 +66,5 @@ func init() {
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	rootCmd.Flags().Int("number", 1, "Specify concurency")
+	rootCmd.Flags().Bool("debug", false, "debug mode")
 }
