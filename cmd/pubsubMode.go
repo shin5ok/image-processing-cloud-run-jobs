@@ -115,6 +115,7 @@ func processingImage(bucket, object string) {
 	newFilename, _ := s.MakeSmall(240)
 	uploadFile(bucket, newFilename)
 	os.Remove(tmpFile)
+	os.Remove(newFilename)
 }
 
 func uploadFile(bucket, object string) error {
