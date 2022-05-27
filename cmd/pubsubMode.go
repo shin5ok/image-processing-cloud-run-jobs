@@ -6,6 +6,7 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"sync/atomic"
@@ -22,7 +23,7 @@ var pubsubModeCmd = &cobra.Command{
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		topic, _ := cmd.Flags().GetString("topic")
+		topic, _ := cmd.Flags().GetString("sub")
 		project := os.Getenv("GOOGLE_CLOUD_PROJECT")
 		pullMsgsSync(project, topic)
 	},
@@ -30,16 +31,8 @@ and usage of using your command.`,
 
 func init() {
 	rootCmd.AddCommand(pubsubModeCmd)
+	pubsubModeCmd.Flags().String("sub", "", "")
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	pubsubModeCmd.Flags().String("topic", "", "")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// pubsubModeCmd.Flags().Get("toggle", "t", false, "Help message for toggle")
 }
 
 func pullMsgsSync(projectID, subID string) error {
@@ -54,21 +47,46 @@ func pullMsgsSync(projectID, subID string) error {
 
 	sub := client.Subscription(subID)
 
-	// Turn on synchronous mode. This makes the subscriber use the Pull RPC rather
-	// than the StreamingPull RPC, which is useful for guaranteeing MaxOutstandingMessages,
-	// the max number of messages the client will hold in memory at a time.
 	sub.ReceiveSettings.Synchronous = true
 	sub.ReceiveSettings.MaxOutstandingMessages = 10
 
-	// Receive messages for 10 seconds, which simplifies testing.
-	// Comment this out in production, since `Receive` should
-	// be used as a long running operation.
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
+	/*
+			{
+		  "kind": "storage#object",
+		  "id": "shingogcp-firestore-nativemode/images/images/dog/new_000002.png/1653668760085964",
+		  "selfLink": "https://www.googleapis.com/storage/v1/b/shingogcp-firestore-nativemode/o/images%2Fimages%2Fdog%2Fnew_000002.png",
+		  "name": "images/images/dog/new_000002.png",
+		  "bucket": "shingogcp-firestore-nativemode",
+		  "generation": "1653668760085964",
+		  "metageneration": "1",
+		  "contentType": "image/png",
+		  "timeCreated": "2022-05-27T16:26:00.091Z",
+		  "updated": "2022-05-27T16:26:00.091Z",
+		  "storageClass": "STANDARD",
+		  "timeStorageClassUpdated": "2022-05-27T16:26:00.091Z",
+		  "size": "69099",
+		  "md5Hash": "7tcjvcVgCUzJbdTRKUhfPg==",
+		  "mediaLink": "https://www.googleapis.com/download/storage/v1/b/shingogcp-firestore-nativemode/o/images%2Fimages%2Fdog%2Fnew_000002.png?generation=1653668760085964&alt=media",
+		  "crc32c": "N5z6iw==",
+		  "etag": "CMzLlZiMgPgCEAE="
+		}
+	*/
+
+	type dataStruct struct {
+		Name   string `json:"name"`
+		Bucket string `json:"bucket"`
+	}
 
 	var received int32
 	err = sub.Receive(ctx, func(_ context.Context, msg *pubsub.Message) {
-		fmt.Printf("Got message: %q\n", string(msg.Data))
+		var datastruct dataStruct
+		fmt.Printf("%+v\n", string(msg.Data))
+		json.Unmarshal(msg.Data, &datastruct)
+		fmt.Printf("%+v\n", datastruct)
+		filePath := fmt.Sprintf("%s/%s", datastruct.Bucket, datastruct.Name)
+		fmt.Println("gs://" + filePath)
 		atomic.AddInt32(&received, 1)
 		msg.Ack()
 	})
