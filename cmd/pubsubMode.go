@@ -15,6 +15,7 @@ import (
 
 	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/storage"
+	"github.com/google/uuid"
 	"github.com/shin5ok/image-processing-cloud-run-jobs/myimaging"
 	"github.com/spf13/cobra"
 )
@@ -108,12 +109,12 @@ func pullMsgsSync(projectID, subID string, timeout int) error {
 }
 
 func processingImage(bucket, object string) {
-	tmpFile := "vvv.jpg"
+	tmpFile := uuid.NewString() + ".jpg"
 	downloadFile(bucket, object, tmpFile)
 	s := myimaging.Image{Filename: tmpFile}
 	newFilename, _ := s.MakeSmall(240)
 	uploadFile(bucket, newFilename)
-
+	os.Remove(tmpFile)
 }
 
 func uploadFile(bucket, object string) error {
