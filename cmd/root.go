@@ -34,6 +34,10 @@ func runSizing(cmd *cobra.Command, args []string) {
 	if err != nil {
 		fmt.Println(err)
 	}
+	callImaging(args, width, debug)
+}
+
+func callImaging(args []string, width int, debug bool) {
 	var wg sync.WaitGroup
 	for _, file := range args {
 		// for n := 0; n < num; n++ {
