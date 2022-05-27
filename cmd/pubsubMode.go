@@ -2,26 +2,47 @@
 Copyright © 2022 NAME HERE <EMAIL ADDRESS>
 
 */
-package main
+package cmd
 
 import (
 	"context"
 	"fmt"
-	"io"
+	"os"
 	"sync/atomic"
 	"time"
 
-	"github.com/shin5ok/image-processing-cloud-run-jobs/cmd"
-	// "google.golang.org/api/pubsub/v1"
-
 	"cloud.google.com/go/pubsub"
+	"github.com/spf13/cobra"
 )
 
-func main() {
-	cmd.Execute()
+// pubsubModeCmd represents the pubsubMode command
+var pubsubModeCmd = &cobra.Command{
+	Use:   "pubsubMode",
+	Short: "A brief description of your command",
+	Long: `A longer description that spans multiple lines and likely contains examples
+and usage of using your command.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		topic, _ := cmd.Flags().GetString("topic")
+		project := os.Getenv("GOOGLE_CLOUD_PROJECT")
+		pullMsgsSync(project, topic)
+	},
 }
 
-func pullMsgsSync(w io.Writer, projectID, subID string) error {
+func init() {
+	rootCmd.AddCommand(pubsubModeCmd)
+
+	// Here you will define your flags and configuration settings.
+
+	// Cobra supports Persistent Flags which will work for this command
+	// and all subcommands, e.g.:
+	pubsubModeCmd.Flags().String("topic", "", "")
+
+	// Cobra supports local flags which will only run when this command
+	// is called directly, e.g.:
+	// pubsubModeCmd.Flags().Get("toggle", "t", false, "Help message for toggle")
+}
+
+func pullMsgsSync(projectID, subID string) error {
 	// projectID := "my-project-id"
 	// subID := "my-sub"
 	ctx := context.Background()
@@ -47,14 +68,14 @@ func pullMsgsSync(w io.Writer, projectID, subID string) error {
 
 	var received int32
 	err = sub.Receive(ctx, func(_ context.Context, msg *pubsub.Message) {
-		fmt.Fprintf(w, "Got message: %q\n", string(msg.Data))
+		fmt.Printf("Got message: %q\n", string(msg.Data))
 		atomic.AddInt32(&received, 1)
 		msg.Ack()
 	})
 	if err != nil {
 		return fmt.Errorf("sub.Receive: %v", err)
 	}
-	fmt.Fprintf(w, "Received %d messages\n", received)
+	fmt.Printf("Received %d messages\n", received)
 
 	return nil
 }
