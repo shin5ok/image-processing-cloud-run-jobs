@@ -24,17 +24,18 @@ You can run it on local environment, and also on Cloud Run jobs
 	// has an action associated with it:
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		file := args[0]
-		num, err := cmd.Flags().GetInt("number")
+		// file := args[0]
+		// num, err := cmd.Flags().GetInt("number")
 		debug, err := cmd.Flags().GetBool("debug")
 		width, err := cmd.Flags().GetInt("width")
 		if err != nil {
 			fmt.Println(err)
 		}
 		var wg sync.WaitGroup
-		for n := 0; n < num; n++ {
+		for _, file := range args {
+			// for n := 0; n < num; n++ {
 			wg.Add(1)
-			go func(file string, n int) {
+			go func(file string, n string) {
 				defer wg.Done()
 				s := myimaging.Image{Filename: file}
 				if debug {
@@ -42,7 +43,7 @@ You can run it on local environment, and also on Cloud Run jobs
 				}
 				newFilename, _ := s.MakeSmall(width)
 				fmt.Println("new filename is " + newFilename)
-			}(file, n)
+			}(file, os.Getenv("CLOUD_RUN_JOBS_INDEX"))
 		}
 		wg.Wait()
 	},
