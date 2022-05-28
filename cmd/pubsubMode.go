@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"sync/atomic"
 	"time"
@@ -28,20 +29,22 @@ var pubsubModeCmd = &cobra.Command{
 and usage of using your command.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		topic, _ := cmd.Flags().GetString("sub")
+		newBucket, _ := cmd.Flags().GetString("dstbucket")
 		timeout, _ := cmd.Flags().GetInt("timeout")
 		project := os.Getenv("GOOGLE_CLOUD_PROJECT")
-		pullMsgsSync(project, topic, timeout)
+		pullMsgsSync(project, topic, newBucket, timeout)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(pubsubModeCmd)
 	pubsubModeCmd.Flags().String("sub", "", "")
+	pubsubModeCmd.Flags().String("dstbucket", "", "")
 	pubsubModeCmd.Flags().Int("timeout", 10, "")
 
 }
 
-func pullMsgsSync(projectID, subID string, timeout int) error {
+func pullMsgsSync(projectID, subID, newBucket string, timeout int) error {
 	// projectID := "my-project-id"
 	// subID := "my-sub"
 	ctx := context.Background()
@@ -92,10 +95,10 @@ func pullMsgsSync(projectID, subID string, timeout int) error {
 		fmt.Printf("%+v\n", string(msg.Data))
 		json.Unmarshal(msg.Data, &datastruct)
 		fmt.Printf("%+v\n", datastruct)
-		filePath := fmt.Sprintf("%s/%s", datastruct.Bucket, datastruct.Name)
+		filePath := fmt.Sprintf("source object: %s/%s", datastruct.Bucket, datastruct.Name)
 		fmt.Println("gs://" + filePath)
 
-		go processingImage(datastruct.Bucket, datastruct.Name)
+		processingImage(datastruct.Bucket, newBucket, datastruct.Name)
 
 		atomic.AddInt32(&received, 1)
 		msg.Ack()
@@ -108,17 +111,23 @@ func pullMsgsSync(projectID, subID string, timeout int) error {
 	return nil
 }
 
-func processingImage(bucket, object string) {
+func processingImage(srcBucket, dstBucket, object string) {
 	tmpFile := uuid.NewString() + ".jpg"
-	downloadFile(bucket, object, tmpFile)
+	if err := downloadFile(srcBucket, object, tmpFile); err != nil {
+		log.Printf("download failure: %+v", err)
+	}
 	s := myimaging.Image{Filename: tmpFile}
 	newFilename, _ := s.MakeSmall(240)
-	uploadFile(bucket, newFilename)
+	if err := uploadFile(dstBucket, newFilename); err != nil {
+		log.Printf("upload failure: %+v", err)
+	}
 	os.Remove(tmpFile)
 	os.Remove(newFilename)
+	log.Println(tmpFile + " done...clean up")
 }
 
 func uploadFile(bucket, object string) error {
+	fmt.Println(object + " is uploading")
 	// bucket := "bucket-name"
 	// object := "object-name"
 	ctx := context.Background()
@@ -129,7 +138,7 @@ func uploadFile(bucket, object string) error {
 	defer client.Close()
 
 	// Open local file.
-	f, err := os.Open("notes.txt")
+	f, err := os.Open(object)
 	if err != nil {
 		return fmt.Errorf("os.Open: %v", err)
 	}
