@@ -118,7 +118,7 @@ func processingImage(srcBucket, dstBucket, object string) {
 	}
 	s := myimaging.Image{Filename: tmpFile}
 	newFilename, _ := s.MakeSmall(240)
-	if err := uploadFile(dstBucket, newFilename); err != nil {
+	if err := uploadFile(dstBucket, newFilename, object); err != nil {
 		log.Printf("upload failure: %+v", err)
 	}
 	os.Remove(tmpFile)
@@ -126,7 +126,7 @@ func processingImage(srcBucket, dstBucket, object string) {
 	log.Println(tmpFile + " done...clean up")
 }
 
-func uploadFile(bucket, object string) error {
+func uploadFile(bucket, srcFile, object string) error {
 	fmt.Println(object + " is uploading")
 	// bucket := "bucket-name"
 	// object := "object-name"
@@ -138,7 +138,7 @@ func uploadFile(bucket, object string) error {
 	defer client.Close()
 
 	// Open local file.
-	f, err := os.Open(object)
+	f, err := os.Open(srcFile)
 	if err != nil {
 		return fmt.Errorf("os.Open: %v", err)
 	}
