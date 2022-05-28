@@ -1,1 +1,1 @@
-go run main.go pubsubMode --sub sub --timeout 10 --dstbucket $PROJECT-new
+DST_BUCKET=$PROJECT-new SUBSCRIPTION=sub go run main.go pubsubMode --timeout 60

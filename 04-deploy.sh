@@ -1,7 +1,6 @@
 REGION=us-central1
+SUBSCRIPTION=sub
 DST_BUCKET=$PROJECT-new
-
-gcloud builds submit --pack=image=$REGION-docker.pkg.dev/$PROJECT/containers/imaging:v1
 
 gcloud beta run jobs update imaging \
   --image=$REGION-docker.pkg.dev/$PROJECT/containers/imaging:v1 \
@@ -9,5 +8,5 @@ gcloud beta run jobs update imaging \
   --region=$REGION \
   --tasks=2 \
   --task-timeout=5m \
-  --set-env-vars=DST_BUCKET=$DST_BUCKET \
+  --set-env-vars=DST_BUCKET=$DST_BUCKET,SUBSCRIPTION=$SUBSCRIPTION \
   --service-account=imaging-sa@$PROJECT.iam.gserviceaccount.com

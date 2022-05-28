@@ -50,6 +50,7 @@ func init() {
 }
 
 func pullMsgsSync(projectID, subID, newBucket string, timeout int) error {
+	log.Println("Project:", projectID, "Subscription:", subID, "Bucket:", newBucket)
 	// projectID := "my-project-id"
 	// subID := "my-sub"
 	ctx := context.Background()
