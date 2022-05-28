@@ -21,6 +21,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	SUBSCRIPTION = os.Getenv("SUBSCRIPTION")
+	DST_BUCKET   = os.Getenv("DST_BUCKET")
+)
+
 // pubsubModeCmd represents the pubsubMode command
 var pubsubModeCmd = &cobra.Command{
 	Use:   "pubsubMode",
@@ -38,9 +43,9 @@ and usage of using your command.`,
 
 func init() {
 	rootCmd.AddCommand(pubsubModeCmd)
-	pubsubModeCmd.Flags().String("sub", "", "")
-	pubsubModeCmd.Flags().String("dstbucket", "", "")
-	pubsubModeCmd.Flags().Int("timeout", 10, "")
+	pubsubModeCmd.Flags().String("sub", SUBSCRIPTION, "")
+	pubsubModeCmd.Flags().String("dstbucket", DST_BUCKET, "")
+	pubsubModeCmd.Flags().Int("timeout", 600, "")
 
 }
 
