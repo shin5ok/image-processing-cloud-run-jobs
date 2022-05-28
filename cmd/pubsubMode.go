@@ -11,6 +11,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"path/filepath"
 	"sync/atomic"
 	"time"
 
@@ -122,7 +123,7 @@ func pullMsgsSync(projectID, subID, newBucket string, timeout int) error {
 }
 
 func processingImage(srcBucket, dstBucket, object string) {
-	tmpFile := uuid.NewString() + ".jpg"
+	tmpFile := filepath.Join("/tmp", uuid.NewString()+".jpg")
 	if err := downloadFile(srcBucket, object, tmpFile); err != nil {
 		log.Printf("download failure: %+v", err)
 	}
