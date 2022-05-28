@@ -48,7 +48,7 @@ func init() {
 	pubsubModeCmd.Flags().String("dstbucket", DST_BUCKET, "")
 	pubsubModeCmd.Flags().Int("timeout", 600, "")
 
-	log.Printf("index: %s", os.Getenv("CLOUD_RUN_TASK_INDEX"))
+	log.Printf("index: %s\n", os.Getenv("CLOUD_RUN_TASK_INDEX"))
 
 }
 
