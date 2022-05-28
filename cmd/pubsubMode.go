@@ -36,7 +36,7 @@ and usage of using your command.`,
 		topic, _ := cmd.Flags().GetString("sub")
 		newBucket, _ := cmd.Flags().GetString("dstbucket")
 		timeout, _ := cmd.Flags().GetInt("timeout")
-		project := os.Getenv("GOOGLE_CLOUD_PROJECT")
+		project := os.Getenv("PROJECT")
 		pullMsgsSync(project, topic, newBucket, timeout)
 	},
 }
@@ -46,6 +46,8 @@ func init() {
 	pubsubModeCmd.Flags().String("sub", SUBSCRIPTION, "")
 	pubsubModeCmd.Flags().String("dstbucket", DST_BUCKET, "")
 	pubsubModeCmd.Flags().Int("timeout", 600, "")
+
+	log.Printf("index: %s", os.Getenv("CLOUD_RUN_TASK_INDEX"))
 
 }
 
@@ -64,6 +66,8 @@ func pullMsgsSync(projectID, subID, newBucket string, timeout int) error {
 
 	sub.ReceiveSettings.Synchronous = true
 	sub.ReceiveSettings.MaxOutstandingMessages = 10
+
+	log.Printf("Subscription instance: %+v", sub)
 
 	ctx, cancel := context.WithTimeout(ctx, time.Duration(timeout)*time.Second)
 	defer cancel()
@@ -98,11 +102,11 @@ func pullMsgsSync(projectID, subID, newBucket string, timeout int) error {
 	err = sub.Receive(ctx, func(_ context.Context, msg *pubsub.Message) {
 		var datastruct dataStruct
 
-		fmt.Printf("%+v\n", string(msg.Data))
+		log.Printf("%+v\n", string(msg.Data))
 		json.Unmarshal(msg.Data, &datastruct)
-		fmt.Printf("%+v\n", datastruct)
+		log.Printf("%+v\n", datastruct)
 		filePath := fmt.Sprintf("source object: %s/%s", datastruct.Bucket, datastruct.Name)
-		fmt.Println("gs://" + filePath)
+		log.Println("gs://" + filePath)
 
 		go processingImage(datastruct.Bucket, newBucket, datastruct.Name)
 
@@ -112,7 +116,7 @@ func pullMsgsSync(projectID, subID, newBucket string, timeout int) error {
 	if err != nil {
 		return fmt.Errorf("sub.Receive: %v", err)
 	}
-	fmt.Printf("Received %d messages\n", received)
+	log.Printf("Received %d messages\n", received)
 
 	return nil
 }
@@ -133,7 +137,7 @@ func processingImage(srcBucket, dstBucket, object string) {
 }
 
 func uploadFile(bucket, srcFile, object string) error {
-	fmt.Println(object + " is uploading")
+	log.Println(object + " is uploading")
 	// bucket := "bucket-name"
 	// object := "object-name"
 	ctx := context.Background()
@@ -164,7 +168,7 @@ func uploadFile(bucket, srcFile, object string) error {
 	if err := wc.Close(); err != nil {
 		return fmt.Errorf("Writer.Close: %v", err)
 	}
-	fmt.Printf("Blob %v uploaded.\n", object)
+	log.Printf("Blob %v uploaded.\n", object)
 	return nil
 }
 
@@ -201,7 +205,7 @@ func downloadFile(bucket, object string, destFileName string) error {
 		return fmt.Errorf("f.Close: %v", err)
 	}
 
-	fmt.Printf("Blob %v downloaded to local file %v\n", object, destFileName)
+	log.Printf("Blob %v downloaded to local file %v\n", object, destFileName)
 
 	return nil
 
