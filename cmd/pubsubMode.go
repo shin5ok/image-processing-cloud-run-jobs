@@ -98,7 +98,7 @@ func pullMsgsSync(projectID, subID, newBucket string, timeout int) error {
 		filePath := fmt.Sprintf("source object: %s/%s", datastruct.Bucket, datastruct.Name)
 		fmt.Println("gs://" + filePath)
 
-		processingImage(datastruct.Bucket, newBucket, datastruct.Name)
+		go processingImage(datastruct.Bucket, newBucket, datastruct.Name)
 
 		atomic.AddInt32(&received, 1)
 		msg.Ack()
