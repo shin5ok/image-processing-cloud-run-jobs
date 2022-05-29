@@ -1,5 +1,5 @@
 /*
-Copyright © 2022 NAME HERE <EMAIL ADDRESS>
+Copyright © 2022 Shingo <shin5ok@55mp.com>
 
 */
 package cmd
@@ -54,8 +54,6 @@ func init() {
 
 func pullMsgsSync(projectID, subID, newBucket string, timeout int) error {
 	log.Println("Project:", projectID, "Subscription:", subID, "Bucket:", newBucket)
-	// projectID := "my-project-id"
-	// subID := "my-sub"
 	ctx := context.Background()
 	client, err := pubsub.NewClient(ctx, projectID)
 	if err != nil {
@@ -72,27 +70,6 @@ func pullMsgsSync(projectID, subID, newBucket string, timeout int) error {
 
 	ctx, cancel := context.WithTimeout(ctx, time.Duration(timeout)*time.Second)
 	defer cancel()
-	/*
-			{
-		  "kind": "storage#object",
-		  "id": "shingogcp-firestore-nativemode/images/images/dog/new_000002.png/1653668760085964",
-		  "selfLink": "https://www.googleapis.com/storage/v1/b/shingogcp-firestore-nativemode/o/images%2Fimages%2Fdog%2Fnew_000002.png",
-		  "name": "images/images/dog/new_000002.png",
-		  "bucket": "shingogcp-firestore-nativemode",
-		  "generation": "1653668760085964",
-		  "metageneration": "1",
-		  "contentType": "image/png",
-		  "timeCreated": "2022-05-27T16:26:00.091Z",
-		  "updated": "2022-05-27T16:26:00.091Z",
-		  "storageClass": "STANDARD",
-		  "timeStorageClassUpdated": "2022-05-27T16:26:00.091Z",
-		  "size": "69099",
-		  "md5Hash": "7tcjvcVgCUzJbdTRKUhfPg==",
-		  "mediaLink": "https://www.googleapis.com/download/storage/v1/b/shingogcp-firestore-nativemode/o/images%2Fimages%2Fdog%2Fnew_000002.png?generation=1653668760085964&alt=media",
-		  "crc32c": "N5z6iw==",
-		  "etag": "CMzLlZiMgPgCEAE="
-		}
-	*/
 
 	type dataStruct struct {
 		Name   string `json:"name"`
@@ -139,8 +116,6 @@ func processingImage(srcBucket, dstBucket, object string) {
 
 func uploadFile(bucket, srcFile, object string) error {
 	log.Println(object + " is uploading")
-	// bucket := "bucket-name"
-	// object := "object-name"
 	ctx := context.Background()
 	client, err := storage.NewClient(ctx)
 	if err != nil {
@@ -148,7 +123,6 @@ func uploadFile(bucket, srcFile, object string) error {
 	}
 	defer client.Close()
 
-	// Open local file.
 	f, err := os.Open(srcFile)
 	if err != nil {
 		return fmt.Errorf("os.Open: %v", err)
@@ -174,9 +148,7 @@ func uploadFile(bucket, srcFile, object string) error {
 }
 
 func downloadFile(bucket, object string, destFileName string) error {
-	// bucket := "bucket-name"
-	// object := "object-name"
-	// destFileName := "file.txt"
+
 	ctx := context.Background()
 	client, err := storage.NewClient(ctx)
 	if err != nil {
